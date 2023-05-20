@@ -66,6 +66,15 @@ const parameters = {
     shape: "spiral", // "spiral", "circle", or "ellipse"
     thetaScale: 1, // scaling factor for theta
     distribution: "uniform", // "uniform", "gaussian", "exponential", "weibull", "lognormal", or "pareto"
+    gaussianMean: 0.5,
+    gaussianStdDev: 0.15,
+    exponentialLambda: 1,
+    weibullShape: 2,
+    weibullScale: 1,
+    lognormalMean: 0.5,
+    lognormalStdDev: 0.15,
+    paretoAlpha: 2,
+    paretoXm: 0.5
 }
 
 let geometry = null
@@ -94,19 +103,19 @@ const createGalaxy = () => {
                 radius = Math.random() * parameters.radius;
                 break;
             case "gaussian":
-                radius = randomGaussian() * parameters.radius;
+                radius = randomGaussian(parameters.gaussianMean, parameters.gaussianStdDev) * parameters.radius;
                 break;
             case "exponential":
-                radius = randomExponential() * parameters.radius;
+                radius = randomExponential(parameters.exponentialLambda) * parameters.radius;
                 break;
             case "weibull":
-                radius = randomWeibull() * parameters.radius;
+                radius = randomWeibull(parameters.weibullShape, parameters.weibullScale) * parameters.radius;
                 break;
             case "lognormal":
-                radius = randomLogNormal() * parameters.radius;
+                radius = randomLogNormal(parameters.lognormalMean, parameters.lognormalStdDev) * parameters.radius;
                 break;
             case "pareto":
-                radius = randomPareto() * parameters.radius;
+                radius = randomPareto(parameters.paretoAlpha, parameters.paretoXm) * parameters.radius;
                 break;
             default:
                 console.error("Invalid distribution parameter")
@@ -192,7 +201,6 @@ function generateGalaxy() {
     createGalaxy()
 }
 
-gui.add(parameters, 'distribution', ['uniform', 'gaussian', 'exponential', 'weibull', 'lognormal', 'pareto']).onFinishChange(generateGalaxy)
 gui.add(parameters, 'count').min(1000).max(10000).step(500).onFinishChange(generateGalaxy)
 gui.add(parameters, 'size').min(0.001).max(0.1).step(0.001).onFinishChange(generateGalaxy)
 gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy)
@@ -204,6 +212,27 @@ gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
 gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
 gui.add(parameters, 'shape', ['spiral', 'circle', 'ellipse']).onFinishChange(generateGalaxy)
 gui.add(parameters, 'thetaScale').min(0.1).max(10).step(0.1).onFinishChange(generateGalaxy)
+gui.add(parameters, 'distribution', ['uniform', 'gaussian', 'exponential', 'weibull', 'lognormal', 'pareto']).onFinishChange(generateGalaxy)
+
+const gaussianFolder = gui.addFolder('Gaussian Parameters');
+gaussianFolder.add(parameters, 'gaussianMean').min(0).max(1).step(0.01).name('Mean').onFinishChange(generateGalaxy);
+gaussianFolder.add(parameters, 'gaussianStdDev').min(0.01).max(1).step(0.01).name('Std. Dev.').onFinishChange(generateGalaxy);
+
+const exponentialFolder = gui.addFolder('Exponential Distribution');
+exponentialFolder.add(parameters, 'exponentialLambda').min(0.1).max(1).step(0.01).name('Lambda').onFinishChange(generateGalaxy);
+
+const weibullFolder = gui.addFolder('Weibull Distribution');
+weibullFolder.add(parameters, 'weibullShape', 0.1, 10).step(0.1).name('Shape').onFinishChange(generateGalaxy);
+weibullFolder.add(parameters, 'weibullScale', 0.1, 10).step(0.1).name('Scale').onFinishChange(generateGalaxy);
+
+const lognormalFolder = gui.addFolder('Log-normal Distribution');
+lognormalFolder.add(parameters, 'lognormalMean', 0, 1).step(0.01).name('Mean').onFinishChange(generateGalaxy);
+lognormalFolder.add(parameters, 'lognormalStdDev', 0, 1).step(0.01).name('Std. Dev.').onFinishChange(generateGalaxy);
+
+const paretoFolder = gui.addFolder('Pareto Distribution');
+paretoFolder.add(parameters, 'paretoAlpha', 0.1, 10).step(0.1).name('Alpha').onFinishChange(generateGalaxy);
+paretoFolder.add(parameters, 'paretoXm', 0.1, 10).step(0.1).name('Xm').onFinishChange(generateGalaxy);
+
 
 generateGalaxy()
 
