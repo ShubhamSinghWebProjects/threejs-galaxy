@@ -65,6 +65,7 @@ const parameters = {
     outsideColor: '#1b3984', // Outer galaxy color
     shape: "spiral", // "spiral", "circle", or "ellipse"
     thetaScale: 1, // scaling factor for theta
+    distribution: "uniform", // "uniform", "gaussian", "exponential", "weibull", "lognormal", or "pareto"
 }
 
 let geometry = null
@@ -86,7 +87,32 @@ const createGalaxy = () => {
         const i3 = i * 3
 
         // Position
-        const radius = Math.random() * parameters.radius
+        let  radius;
+
+        switch(parameters.distribution) {
+            case "uniform":
+                radius = Math.random() * parameters.radius;
+                break;
+            case "gaussian":
+                radius = randomGaussian() * parameters.radius;
+                break;
+            case "exponential":
+                radius = randomExponential() * parameters.radius;
+                break;
+            case "weibull":
+                radius = randomWeibull() * parameters.radius;
+                break;
+            case "lognormal":
+                radius = randomLogNormal() * parameters.radius;
+                break;
+            case "pareto":
+                radius = randomPareto() * parameters.radius;
+                break;
+            default:
+                console.error("Invalid distribution parameter")
+                return;
+        }
+
         const spinAngle = radius * parameters.spin
         const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
 
@@ -166,6 +192,7 @@ function generateGalaxy() {
     createGalaxy()
 }
 
+gui.add(parameters, 'distribution', ['uniform', 'gaussian', 'exponential', 'weibull', 'lognormal', 'pareto']).onFinishChange(generateGalaxy)
 gui.add(parameters, 'count').min(1000).max(10000).step(500).onFinishChange(generateGalaxy)
 gui.add(parameters, 'size').min(0.001).max(0.1).step(0.001).onFinishChange(generateGalaxy)
 gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy)
@@ -255,3 +282,45 @@ const tick = () =>
 }
 
 tick()
+
+
+function randomGaussian(mean = 0.5, stdDev = 0.15) {
+    // Use the polar form of the Box-Muller transform to get a Gaussian-distributed random number
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+    while (v === 0) v = Math.random();
+    const num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+
+    // Scale by desired mean and standard deviation
+    const scaledNum = num * stdDev + mean;
+
+    // Clamp within [0, 1]
+    return Math.min(Math.max(scaledNum, 0), 1);
+}
+
+
+function randomExponential(lambda = 1) {
+    /**
+     * Exponential distribution: We can generate exponentially distributed random numbers using the 
+     * inverse transform sampling method, which involves applying the inverse of the cumulative distribution function (CDF) 
+     * to a uniform random variable.
+     */
+    return -Math.log(1 - Math.random()) / lambda;
+}
+
+//Weibull distribution: Similarly, we can use the inverse transform sampling method for Weibull distribution:
+
+function randomWeibull(shape = 1, scale = 1) {
+    return scale * Math.pow(-Math.log(1 - Math.random()), 1 / shape);
+}
+
+// Log-normal distribution: We can generate a log-normal distribution using the Box-Muller transform on normally distributed numbers.
+function randomLogNormal(mean = 0, stdDev = 1) {
+    const normalRandom = randomGaussian(mean, stdDev);
+    return Math.exp(normalRandom);
+}
+
+// Pareto distribution: The Pareto distribution can be also generated using the inverse transform method:
+function randomPareto(alpha = 1, xm = 1) {
+    return xm / Math.pow(1 - Math.random(), 1 / alpha);
+}
